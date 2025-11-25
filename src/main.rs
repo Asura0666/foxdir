@@ -52,7 +52,7 @@ fn main() {
 
     let path = cli
         .path
-        .unwrap_or_else(|| PathBuf::from(r"D:\Rust\Projects\demo_cli"));
+        .unwrap_or_else(|| PathBuf::from(r"/mnt/d/Rust/Projects/foxdir"));
     println!("selected path: {}", path.display().green());
 
     if let Ok(does_exist) = fs::exists(&path) {
@@ -91,10 +91,8 @@ fn get_files(path: &Path) -> Vec<FileEntry> {
     let mut data = Vec::default();
 
     if let Ok(read_dir) = fs::read_dir(path) {
-        for entry in read_dir {
-            if let Ok(file) = entry {
-                map_data(file, &mut data);
-            }
+        for file in read_dir.flatten() {
+            map_data(file, &mut data);
         }
     }
 
@@ -102,11 +100,11 @@ fn get_files(path: &Path) -> Vec<FileEntry> {
 }
 
 fn map_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
-    if let Ok(meta) = fs::metadata(&file.path()) {
+    if let Ok(meta) = fs::metadata(file.path()) {
         let modified_time = meta
             .modified()
             .ok()
-            .map(|time| DateTime::<Local>::from(time))
+            .map(DateTime::<Local>::from)
             .map_or_else(
                 || "unknown".to_string(),
                 |dt| dt.format("%Y-%m-%d %H:%M:%S").to_string(),
